@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app:*)",
+      "Bash(npm run dev:*)",
+      "Bash(open http://localhost:3000)",
+      "Bash(open http://localhost:3000/home)",
+      "Bash(chmod:*)",
+      "Bash(node scripts/get-routes.js:*)",
+      "Bash(npm run routes:*)",
+      "Bash(node scripts/generate-bundleless.js:*)",
+      "Bash(open:*)",
+      "Bash(node scripts/generate-esm-bundleless.js:*)",
+      "Bash(npm run generate:bundleless:*)",
+      "Bash(node scripts/generate-with-layout.js:*)",
+      "Bash(find:*)",
+      "Bash(node scripts/generate-with-assets.js:*)",
+      "Bash(timeout 5 node:*)",
+      "Bash(node scripts/generate-with-assets-core.js:*)",
+      "Bash(node scripts/test-watch.js:*)",
+      "Bash(npm run watch:bundleless:*)"
+    ]
+  }
+}
