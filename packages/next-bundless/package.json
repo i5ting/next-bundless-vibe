@@ -1,0 +1,33 @@
+{
+  "name": "next-bundless",
+  "version": "1.0.0",
+  "description": "将 Next.js 应用转换为 bundleless 模式的工具",
+  "main": "src/index.js",
+  "bin": {
+    "next-bundless": "./src/cli/index.js"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "dev": "node src/cli/index.js watch",
+    "build": "node src/cli/index.js generate"
+  },
+  "keywords": [
+    "nextjs",
+    "bundleless",
+    "esm",
+    "react"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.28.2",
+  "dependencies": {
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
+    "vitest": "^4.0.18"
+  }
+}

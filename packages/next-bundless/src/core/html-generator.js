@@ -1,35 +1,32 @@
-<!DOCTYPE html>
+const { transformToESM, transformCSS, getComponentName, extractLayoutBodyClass } = require('./transformer');
+
+/**
+ * 生成带 layout 的 HTML 页面
+ * @param {string} pageCode - 页面代码
+ * @param {string} layoutCode - layout 代码
+ * @param {string} globalCSS - 全局 CSS
+ * @param {string} routeName - 路由名称
+ * @returns {string} HTML 内容
+ */
+function generateHTMLWithLayout(pageCode, layoutCode, globalCSS, routeName) {
+  const esmPageCode = transformToESM(pageCode);
+  const esmLayoutCode = transformToESM(layoutCode);
+  const pageName = getComponentName(pageCode);
+  const bodyClass = extractLayoutBodyClass(layoutCode);
+  const transformedCSS = transformCSS(globalCSS);
+
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>home</title>
+  <title>${routeName}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
+${transformedCSS}
   </style>
 </head>
-<body class="antialiased">
+<body class="${bodyClass}">
   <div id="root"></div>
 
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -39,21 +36,7 @@ body {
     const { useState, useEffect } = React;
 
     // Page Component
-function HomePage() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <main className="text-center">
-        <h1 className="text-6xl font-bold text-gray-900 dark:text-white mb-4">
-          Hello World
-        </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-300">
-          Welcome to Next.js 16!
-        </p>
-      </main>
-    </div>
-  );
-}
-
+${esmPageCode}
 
     // Layout Component
     function RootLayout({ children }) {
@@ -68,9 +51,14 @@ function HomePage() {
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(
       <RootLayout>
-        <HomePage />
+        <${pageName} />
       </RootLayout>
     );
   </script>
 </body>
-</html>
+</html>`;
+}
+
+module.exports = {
+  generateHTMLWithLayout
+};

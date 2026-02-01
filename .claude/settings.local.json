@@ -18,7 +18,21 @@
       "Bash(timeout 5 node:*)",
       "Bash(node scripts/generate-with-assets-core.js:*)",
       "Bash(node scripts/test-watch.js:*)",
-      "Bash(npm run watch:bundleless:*)"
+      "Bash(npm run watch:bundleless:*)",
+      "Bash(pnpm init:*)",
+      "Bash(npm install:*)",
+      "Bash(pnpm install:*)",
+      "Bash(node test/test-generate.js:*)",
+      "Bash(node:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm test:coverage:*)",
+      "Bash(pnpm link:*)",
+      "Bash(next-bundless:*)",
+      "Bash(pnpm exec playwright install:*)",
+      "Bash(pnpm exec playwright test:*)",
+      "Bash(pnpm generate:bundleless:*)",
+      "Bash(git add:*)"
     ]
   }
 }
