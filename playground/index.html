@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Bundleless Playground</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .playground {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 968px) {
+            .playground {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            background: #2d3748;
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 0;
+            overflow: auto;
+        }
+
+        .editor {
+            width: 100%;
+            height: 500px;
+            border: none;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            padding: 20px;
+            resize: vertical;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            line-height: 1.6;
+        }
+
+        .preview {
+            min-height: 500px;
+            padding: 20px;
+            background: #f7fafc;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+        }
+
+        .error {
+            background: #fff5f5;
+            border: 2px solid #fc8181;
+            border-radius: 8px;
+            padding: 15px;
+            color: #c53030;
+            margin: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+
+        .examples {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .example-btn {
+            padding: 8px 16px;
+            background: #edf2f7;
+            color: #2d3748;
+            border: 2px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .example-btn:hover {
+            background: #e2e8f0;
+            border-color: #a0aec0;
+        }
+
+        .status {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status.error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 React Bundleless Playground</h1>
+            <p>在浏览器中直接编写和运行 React 代码，无需构建工具</p>
+        </div>
+
+        <div class="playground">
+            <div class="panel">
+                <div class="panel-header">
+                    <span>📝 JSX 代码编辑器</span>
+                    <span id="lineCount" style="opacity: 0.7; font-size: 12px;">行数: 0</span>
+                </div>
+                <div class="panel-content">
+                    <textarea id="editor" class="editor" spellcheck="false"></textarea>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <span>👁️ 实时预览</span>
+                    <span id="status" class="status"></span>
+                </div>
+                <div class="panel-content">
+                    <div id="preview" class="preview"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-primary" onclick="runCode()">
+                ▶️ 运行代码
+            </button>
+            <button class="btn-secondary" onclick="downloadHTML()">
+                💾 下载 HTML
+            </button>
+            <button class="btn-danger" onclick="clearCode()">
+                🗑️ 清空
+            </button>
+
+            <div style="flex: 1;"></div>
+
+            <div class="examples">
+                <span style="color: white; font-weight: 600; margin-right: 10px;">示例:</span>
+                <button class="example-btn" onclick="loadExample('counter')">计数器</button>
+                <button class="example-btn" onclick="loadExample('todo')">待办事项</button>
+                <button class="example-btn" onclick="loadExample('form')">表单</button>
+                <button class="example-btn" onclick="loadExample('fetch')">数据获取</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量，用于管理 React root
+        let currentRoot = null;
+
+        // 示例代码
+        const examples = {
+            counter: "function Counter() {\n  const [count, setCount] = React.useState(0);\n\n  return (\n    <div style={{ padding: '20px', textAlign: 'center' }}>\n      <h2 style={{ color: '#2d3748', marginBottom: '20px' }}>\n        计数器示例\n      </h2>\n      <div style={{\n        fontSize: '48px',\n        fontWeight: 'bold',\n        color: '#667eea',\n        margin: '20px 0'\n      }}>\n        {count}\n      </div>\n      <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>\n        <button\n          onClick={() => setCount(count - 1)}\n          style={{\n            padding: '10px 20px',\n            fontSize: '16px',\n            background: '#f56565',\n            color: 'white',\n            border: 'none',\n            borderRadius: '8px',\n            cursor: 'pointer'\n          }}\n        >\n          - 减少\n        </button>\n        <button\n          onClick={() => setCount(0)}\n          style={{\n            padding: '10px 20px',\n            fontSize: '16px',\n            background: '#718096',\n            color: 'white',\n            border: 'none',\n            borderRadius: '8px',\n            cursor: 'pointer'\n          }}\n        >\n          重置\n        </button>\n        <button\n          onClick={() => setCount(count + 1)}\n          style={{\n            padding: '10px 20px',\n            fontSize: '16px',\n            background: '#48bb78',\n            color: 'white',\n            border: 'none',\n            borderRadius: '8px',\n            cursor: 'pointer'\n          }}\n        >\n          + 增加\n        </button>\n      </div>\n    </div>\n  );\n}\n\nReactDOM.render(<Counter />, document.getElementById('preview'));",
+
+            todo: "function TodoApp() {\n  const [todos, setTodos] = React.useState([]);\n  const [input, setInput] = React.useState('');\n\n  const addTodo = () => {\n    if (input.trim()) {\n      setTodos([...todos, { id: Date.now(), text: input, done: false }]);\n      setInput('');\n    }\n  };\n\n  const toggleTodo = (id) => {\n    setTodos(todos.map(todo =>\n      todo.id === id ? { ...todo, done: !todo.done } : todo\n    ));\n  };\n\n  const deleteTodo = (id) => {\n    setTodos(todos.filter(todo => todo.id !== id));\n  };\n\n  return (\n    <div style={{ padding: '20px', maxWidth: '500px', margin: '0 auto' }}>\n      <h2 style={{ color: '#2d3748', marginBottom: '20px' }}>\n        📝 待办事项\n      </h2>\n\n      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>\n        <input\n          type=\"text\"\n          value={input}\n          onChange={(e) => setInput(e.target.value)}\n          onKeyPress={(e) => e.key === 'Enter' && addTodo()}\n          placeholder=\"添加新任务...\"\n          style={{\n            flex: 1,\n            padding: '10px',\n            fontSize: '14px',\n            border: '2px solid #e2e8f0',\n            borderRadius: '8px'\n          }}\n        />\n        <button\n          onClick={addTodo}\n          style={{\n            padding: '10px 20px',\n            background: '#667eea',\n            color: 'white',\n            border: 'none',\n            borderRadius: '8px',\n            cursor: 'pointer'\n          }}\n        >\n          添加\n        </button>\n      </div>\n\n      <div>\n        {todos.map(todo => (\n          <div\n            key={todo.id}\n            style={{\n              display: 'flex',\n              alignItems: 'center',\n              gap: '10px',\n              padding: '12px',\n              background: 'white',\n              borderRadius: '8px',\n              marginBottom: '8px',\n              border: '1px solid #e2e8f0'\n            }}\n          >\n            <input\n              type=\"checkbox\"\n              checked={todo.done}\n              onChange={() => toggleTodo(todo.id)}\n              style={{ cursor: 'pointer' }}\n            />\n            <span style={{\n              flex: 1,\n              textDecoration: todo.done ? 'line-through' : 'none',\n              color: todo.done ? '#a0aec0' : '#2d3748'\n            }}>\n              {todo.text}\n            </span>\n            <button\n              onClick={() => deleteTodo(todo.id)}\n              style={{\n                padding: '5px 10px',\n                background: '#f56565',\n                color: 'white',\n                border: 'none',\n                borderRadius: '6px',\n                cursor: 'pointer',\n                fontSize: '12px'\n              }}\n            >\n              删除\n            </button>\n          </div>\n        ))}\n      </div>\n\n      {todos.length === 0 && (\n        <p style={{ textAlign: 'center', color: '#a0aec0', marginTop: '20px' }}>\n          暂无任务，添加一个开始吧！\n        </p>\n      )}\n    </div>\n  );\n}\n\nReactDOM.render(<TodoApp />, document.getElementById('preview'));",
+
+            form: "function ContactForm() {\n  const [formData, setFormData] = React.useState({\n    name: '',\n    email: '',\n    message: ''\n  });\n  const [submitted, setSubmitted] = React.useState(false);\n\n  const handleChange = (e) => {\n    setFormData({\n      ...formData,\n      [e.target.name]: e.target.value\n    });\n  };\n\n  const handleSubmit = (e) => {\n    e.preventDefault();\n    setSubmitted(true);\n    setTimeout(() => {\n      setSubmitted(false);\n      setFormData({ name: '', email: '', message: '' });\n    }, 3000);\n  };\n\n  return (\n    <div style={{ padding: '20px', maxWidth: '500px', margin: '0 auto' }}>\n      <h2 style={{ color: '#2d3748', marginBottom: '20px' }}>\n        📮 联系表单\n      </h2>\n\n      {submitted ? (\n        <div style={{\n          padding: '20px',\n          background: '#c6f6d5',\n          color: '#22543d',\n          borderRadius: '8px',\n          textAlign: 'center'\n        }}>\n          ✅ 表单提交成功！\n        </div>\n      ) : (\n        <form onSubmit={handleSubmit}>\n          <div style={{ marginBottom: '15px' }}>\n            <label style={{ display: 'block', marginBottom: '5px', color: '#2d3748', fontWeight: '600' }}>\n              姓名\n            </label>\n            <input\n              type=\"text\"\n              name=\"name\"\n              value={formData.name}\n              onChange={handleChange}\n              required\n              style={{\n                width: '100%',\n                padding: '10px',\n                fontSize: '14px',\n                border: '2px solid #e2e8f0',\n                borderRadius: '8px'\n              }}\n            />\n          </div>\n\n          <div style={{ marginBottom: '15px' }}>\n            <label style={{ display: 'block', marginBottom: '5px', color: '#2d3748', fontWeight: '600' }}>\n              邮箱\n            </label>\n            <input\n              type=\"email\"\n              name=\"email\"\n              value={formData.email}\n              onChange={handleChange}\n              required\n              style={{\n                width: '100%',\n                padding: '10px',\n                fontSize: '14px',\n                border: '2px solid #e2e8f0',\n                borderRadius: '8px'\n              }}\n            />\n          </div>\n\n          <div style={{ marginBottom: '15px' }}>\n            <label style={{ display: 'block', marginBottom: '5px', color: '#2d3748', fontWeight: '600' }}>\n              留言\n            </label>\n            <textarea\n              name=\"message\"\n              value={formData.message}\n              onChange={handleChange}\n              required\n              rows=\"4\"\n              style={{\n                width: '100%',\n                padding: '10px',\n                fontSize: '14px',\n                border: '2px solid #e2e8f0',\n                borderRadius: '8px',\n                resize: 'vertical'\n              }}\n            />\n          </div>\n\n          <button\n            type=\"submit\"\n            style={{\n              width: '100%',\n              padding: '12px',\n              background: '#667eea',\n              color: 'white',\n              border: 'none',\n              borderRadius: '8px',\n              fontSize: '16px',\n              fontWeight: '600',\n              cursor: 'pointer'\n            }}\n          >\n            提交\n          </button>\n        </form>\n      )}\n    </div>\n  );\n}\n\nReactDOM.render(<ContactForm />, document.getElementById('preview'));",
+
+            fetch: "function DataFetcher() {\n  const [data, setData] = React.useState(null);\n  const [loading, setLoading] = React.useState(false);\n  const [error, setError] = React.useState(null);\n\n  const fetchData = async () => {\n    setLoading(true);\n    setError(null);\n    try {\n      const response = await fetch('https://api.github.com/users/github');\n      const json = await response.json();\n      setData(json);\n    } catch (err) {\n      setError(err.message);\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  return (\n    <div style={{ padding: '20px', maxWidth: '500px', margin: '0 auto' }}>\n      <h2 style={{ color: '#2d3748', marginBottom: '20px' }}>\n        🌐 数据获取示例\n      </h2>\n\n      <button\n        onClick={fetchData}\n        disabled={loading}\n        style={{\n          width: '100%',\n          padding: '12px',\n          background: loading ? '#a0aec0' : '#667eea',\n          color: 'white',\n          border: 'none',\n          borderRadius: '8px',\n          fontSize: '16px',\n          fontWeight: '600',\n          cursor: loading ? 'not-allowed' : 'pointer',\n          marginBottom: '20px'\n        }}\n      >\n        {loading ? '加载中...' : '获取 GitHub 用户信息'}\n      </button>\n\n      {error && (\n        <div style={{\n          padding: '15px',\n          background: '#fed7d7',\n          color: '#742a2a',\n          borderRadius: '8px',\n          marginBottom: '20px'\n        }}>\n          错误: {error}\n        </div>\n      )}\n\n      {data && (\n        <div style={{\n          padding: '20px',\n          background: 'white',\n          borderRadius: '8px',\n          border: '1px solid #e2e8f0'\n        }}>\n          <img\n            src={data.avatar_url}\n            alt={data.login}\n            style={{\n              width: '100px',\n              height: '100px',\n              borderRadius: '50%',\n              marginBottom: '15px'\n            }}\n          />\n          <h3 style={{ color: '#2d3748', marginBottom: '10px' }}>\n            {data.name}\n          </h3>\n          <p style={{ color: '#718096', marginBottom: '5px' }}>\n            @{data.login}\n          </p>\n          <p style={{ color: '#4a5568', marginBottom: '10px' }}>\n            {data.bio}\n          </p>\n          <div style={{ display: 'flex', gap: '20px', marginTop: '15px' }}>\n            <div>\n              <strong>{data.public_repos}</strong>\n              <div style={{ fontSize: '12px', color: '#718096' }}>仓库</div>\n            </div>\n            <div>\n              <strong>{data.followers}</strong>\n              <div style={{ fontSize: '12px', color: '#718096' }}>关注者</div>\n            </div>\n            <div>\n              <strong>{data.following}</strong>\n              <div style={{ fontSize: '12px', color: '#718096' }}>关注中</div>\n            </div>\n          </div>\n        </div>\n      )}\n    </div>\n  );\n}\n\nReactDOM.render(<DataFetcher />, document.getElementById('preview'));"
+        };
+
+        // 初始化编辑器
+        const editor = document.getElementById('editor');
+        const preview = document.getElementById('preview');
+        const status = document.getElementById('status');
+        const lineCount = document.getElementById('lineCount');
+
+        // 加载默认示例
+        loadExample('counter');
+
+        // 更新行数
+        editor.addEventListener('input', () => {
+            const lines = editor.value.split('\n').length;
+            lineCount.textContent = '行数: ' + lines;
+        });
+
+        // 加载示例
+        function loadExample(name) {
+            editor.value = examples[name];
+            const lines = editor.value.split('\n').length;
+            lineCount.textContent = '行数: ' + lines;
+            runCode();
+        }
+
+        // 运行代码
+        function runCode() {
+            const code = editor.value;
+
+            // 先正确卸载旧组件
+            if (currentRoot) {
+                try {
+                    currentRoot.unmount();
+                } catch (e) {
+                    console.warn('Unmount error:', e);
+                }
+                currentRoot = null;
+            }
+
+            // 清空 DOM
+            preview.innerHTML = '';
+
+            try {
+                // 修改用户代码，使用 createRoot 而不是 render
+                let modifiedCode = code.replace(
+                    /ReactDOM\.render\((.*?),\s*document\.getElementById\(['"]preview['"]\)\)/g,
+                    function(match, component) {
+                        return `currentRoot = ReactDOM.createRoot(document.getElementById('preview')); currentRoot.render(${component})`;
+                    }
+                );
+
+                // 转换 JSX 为 JavaScript
+                const transformedCode = Babel.transform(modifiedCode, {
+                    presets: ['react']
+                }).code;
+
+                // 执行代码
+                eval(transformedCode);
+
+                // 更新状态
+                status.className = 'status success';
+                status.textContent = '✓ 运行成功';
+
+                setTimeout(() => {
+                    status.className = 'status';
+                    status.textContent = '';
+                }, 2000);
+            } catch (error) {
+                preview.innerHTML = '<div class="error">❌ 错误:\n\n' + error.message + '</div>';
+                status.className = 'status error';
+                status.textContent = '✗ 运行失败';
+                console.error(error);
+            }
+        }
+
+        // 下载 HTML
+        function downloadHTML() {
+            const code = editor.value;
+            const modifiedCode = code.replace("document.getElementById('preview')", "document.getElementById('root')");
+            
+            const html = '<!DOCTYPE html>\n' +
+'<html lang="zh-CN">\n' +
+'<head>\n' +
+'    <meta charset="UTF-8">\n' +
+'    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+'    <title>React Bundleless App</title>\n' +
+'    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"><\/script>\n' +
+'    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"><\/script>\n' +
+'    <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>\n' +
+'</head>\n' +
+'<body>\n' +
+'    <div id="root"></div>\n' +
+'\n' +
+'    <script type="text/babel">\n' +
+modifiedCode + '\n' +
+'    <\/script>\n' +
+'</body>\n' +
+'</html>';
+
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'react-app.html';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            status.className = 'status success';
+            status.textContent = '✓ 下载成功';
+            setTimeout(() => {
+                status.className = 'status';
+                status.textContent = '';
+            }, 2000);
+        }
+
+        // 清空代码
+        function clearCode() {
+            if (confirm('确定要清空代码吗？')) {
+                // 先卸载 React 组件
+                if (currentRoot) {
+                    try {
+                        currentRoot.unmount();
+                    } catch (e) {
+                        console.warn('Unmount error:', e);
+                    }
+                    currentRoot = null;
+                }
+
+                editor.value = '';
+                preview.innerHTML = '';
+                lineCount.textContent = '行数: 0';
+            }
+        }
+
+        // 支持 Ctrl/Cmd + Enter 运行
+        editor.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                runCode();
+            }
+        });
+    </script>
+</body>
+</html>
