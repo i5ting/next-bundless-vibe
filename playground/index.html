@@ -85,21 +85,22 @@
 
         .editor {
             width: 100%;
-            height: 500px;
+            height: 600px;
             border: none;
             font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
             font-size: 14px;
             padding: 20px;
-            resize: vertical;
+            resize: none;
             background: #1e1e1e;
             color: #d4d4d4;
             line-height: 1.6;
         }
 
         .preview {
-            min-height: 500px;
+            height: 600px;
             padding: 20px;
             background: #f7fafc;
+            overflow: auto;
         }
 
         .controls {
@@ -267,7 +268,16 @@
             <div class="panel">
                 <div class="panel-header">
                     <span>👁️ 实时预览</span>
-                    <span id="status" class="status"></span>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button
+                            onclick="openInNewTab()"
+                            style="padding: 6px 12px; background: #48bb78; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600;"
+                            title="在新标签页中打开"
+                        >
+                            🔗 新标签页打开
+                        </button>
+                        <span id="status" class="status"></span>
+                    </div>
                 </div>
                 <div class="panel-content">
                     <div id="preview" class="preview"></div>
@@ -295,8 +305,7 @@
                     style="padding: 8px 16px; border: 2px solid #cbd5e0; border-radius: 6px; font-size: 14px; min-width: 200px; cursor: pointer;"
                     onchange="loadBundlelessPageByPath()"
                 >
-                    <option value="">-- 选择页面 --</option>
-                    <option value="index">/index</option>
+                    <option value="index" selected>/index</option>
                     <option value="home">/home</option>
                     <option value="register">/register</option>
                 </select>
@@ -522,8 +531,8 @@ ReactDOM.render(<Register />, document.getElementById('preview'));`
         const status = document.getElementById('status');
         const lineCount = document.getElementById('lineCount');
 
-        // 加载默认示例
-        loadExample('counter');
+        // 加载默认页面
+        loadBundlelessPage('index');
 
         // 更新行数
         editor.addEventListener('input', () => {
@@ -649,6 +658,39 @@ ReactDOM.render(<Register />, document.getElementById('preview'));`
                 status.textContent = '✗ 运行失败';
                 console.error(error);
             }
+        }
+
+        // 在新标签页打开
+        function openInNewTab() {
+            const code = editor.value;
+            const modifiedCode = code.replace("document.getElementById('preview')", "document.getElementById('root')");
+
+            const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Bundleless App</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"><\/script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"><\/script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+${modifiedCode}
+    <\/script>
+</body>
+</html>`;
+
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+
+            // 延迟释放 URL，确保新窗口已加载
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
 
         // 下载 HTML
