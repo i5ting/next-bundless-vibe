@@ -7,6 +7,7 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * {
             margin: 0;
@@ -207,6 +208,42 @@
             background: #fed7d7;
             color: #742a2a;
         }
+
+        .modules-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .modules-list {
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .module-item {
+            padding: 12px;
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+        }
+
+        .module-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .module-url {
+            color: #718096;
+            font-size: 12px;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
@@ -251,12 +288,28 @@
 
             <div style="flex: 1;"></div>
 
-            <div class="examples">
-                <span style="color: white; font-weight: 600; margin-right: 10px;">示例:</span>
-                <button class="example-btn" onclick="loadExample('counter')">计数器</button>
-                <button class="example-btn" onclick="loadExample('todo')">待办事项</button>
-                <button class="example-btn" onclick="loadExample('form')">表单</button>
-                <button class="example-btn" onclick="loadExample('fetch')">数据获取</button>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <label style="color: white; font-weight: 600;">选择页面:</label>
+                <select
+                    id="pagePathSelect"
+                    style="padding: 8px 16px; border: 2px solid #cbd5e0; border-radius: 6px; font-size: 14px; min-width: 200px; cursor: pointer;"
+                    onchange="loadBundlelessPageByPath()"
+                >
+                    <option value="">-- 选择页面 --</option>
+                    <option value="index">/index</option>
+                    <option value="home">/home</option>
+                    <option value="register">/register</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="modules-panel">
+            <div class="panel-header">
+                <span>📦 加载的模块</span>
+                <span id="moduleCount" style="opacity: 0.7; font-size: 12px;">0 个模块</span>
+            </div>
+            <div id="modulesList" class="modules-list">
+                <p style="text-align: center; color: #a0aec0;">选择一个页面查看其加载的模块</p>
             </div>
         </div>
     </div>
@@ -264,6 +317,193 @@
     <script>
         // 全局变量，用于管理 React root
         let currentRoot = null;
+
+        // 模块信息
+        const pageModules = {
+            index: [
+                { name: 'React', url: 'https://unpkg.com/react@18/umd/react.development.js', type: 'UMD' },
+                { name: 'ReactDOM', url: 'https://unpkg.com/react-dom@18/umd/react-dom.development.js', type: 'UMD' },
+                { name: 'Babel Standalone', url: 'https://unpkg.com/@babel/standalone/babel.min.js', type: 'Compiler' },
+                { name: 'Tailwind CSS', url: 'https://cdn.tailwindcss.com', type: 'CSS Framework' }
+            ],
+            home: [
+                { name: 'React', url: 'https://unpkg.com/react@18/umd/react.development.js', type: 'UMD' },
+                { name: 'ReactDOM', url: 'https://unpkg.com/react-dom@18/umd/react-dom.development.js', type: 'UMD' },
+                { name: 'Babel Standalone', url: 'https://unpkg.com/@babel/standalone/babel.min.js', type: 'Compiler' },
+                { name: 'Tailwind CSS', url: 'https://cdn.tailwindcss.com', type: 'CSS Framework' }
+            ],
+            register: [
+                { name: 'React', url: 'https://unpkg.com/react@18/umd/react.development.js', type: 'UMD' },
+                { name: 'ReactDOM', url: 'https://unpkg.com/react-dom@18/umd/react-dom.development.js', type: 'UMD' },
+                { name: 'Babel Standalone', url: 'https://unpkg.com/@babel/standalone/babel.min.js', type: 'Compiler' },
+                { name: 'Tailwind CSS', url: 'https://cdn.tailwindcss.com', type: 'CSS Framework' }
+            ]
+        };
+
+        // Bundleless 页面代码
+        const bundlelessPages = {
+            index: `function Home() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+        <svg className="dark:invert" width="180" height="37" viewBox="0 0 180 37" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M25.5 0L51 36H0L25.5 0Z" fill="black"/>
+          <text x="60" y="28" fontFamily="system-ui, -apple-system" fontSize="24" fontWeight="bold" fill="black">Next.js</text>
+        </svg>
+        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
+          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
+            To get started, edit the page.tsx file.
+          </h1>
+          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
+            Looking for a starting point or more instructions? Head over to{" "}
+            <a
+              href="https://vercel.com/templates?framework=next.js"
+              className="font-medium text-zinc-950 dark:text-zinc-50"
+            >
+              Templates
+            </a>{" "}
+            or the{" "}
+            <a
+              href="https://nextjs.org/learn"
+              className="font-medium text-zinc-950 dark:text-zinc-50"
+            >
+              Learning
+            </a>{" "}
+            center.
+          </p>
+        </div>
+        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+          <a
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-black px-5 text-white transition-colors hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200 md:w-[158px]"
+            href="https://vercel.com/new"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Deploy Now
+          </a>
+          <a
+            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
+            href="https://nextjs.org/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Documentation
+          </a>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.render(<Home />, document.getElementById('preview'));`,
+
+            home: `function HomePage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <main className="text-center">
+        <h1 className="text-6xl font-bold text-gray-900 dark:text-white mb-4">
+          Hello World
+        </h1>
+        <p className="text-xl text-gray-600 dark:text-gray-300">
+          Welcome to Next.js 16!
+        </p>
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.render(<HomePage />, document.getElementById('preview'));`,
+
+            register: `function Register() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
+      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-lg dark:bg-zinc-900">
+        <div>
+          <h2 className="text-center text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+            Create your account
+          </h2>
+          <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
+            Already have an account?{" "}
+            <a href="/login" className="font-medium text-zinc-900 hover:text-zinc-700 dark:text-zinc-50 dark:hover:text-zinc-300">
+              Sign in
+            </a>
+          </p>
+        </div>
+        <form className="mt-8 space-y-6" action="#" method="POST">
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                Full Name
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                required
+                className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500"
+                placeholder="John Doe"
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                Email address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500"
+                placeholder="you@example.com"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                required
+                className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500"
+                placeholder="••••••••"
+              />
+            </div>
+            <div>
+              <label htmlFor="confirm-password" className="block text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                Confirm Password
+              </label>
+              <input
+                id="confirm-password"
+                name="confirm-password"
+                type="password"
+                autoComplete="new-password"
+                required
+                className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              className="flex w-full justify-center rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              Register
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<Register />, document.getElementById('preview'));`
+        };
 
         // 示例代码
         const examples = {
@@ -297,6 +537,68 @@
             const lines = editor.value.split('\n').length;
             lineCount.textContent = '行数: ' + lines;
             runCode();
+        }
+
+        // 显示模块信息
+        function displayModules(pageName) {
+            const modulesList = document.getElementById('modulesList');
+            const moduleCount = document.getElementById('moduleCount');
+            const modules = pageModules[pageName] || [];
+
+            if (modules.length === 0) {
+                modulesList.innerHTML = '<p style="text-align: center; color: #a0aec0;">该页面没有加载任何模块</p>';
+                moduleCount.textContent = '0 个模块';
+                return;
+            }
+
+            moduleCount.textContent = modules.length + ' 个模块';
+            modulesList.innerHTML = modules.map(module => `
+                <div class="module-item">
+                    <div class="module-name">${module.name} <span style="background: #667eea; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">${module.type}</span></div>
+                    <div class="module-url">${module.url}</div>
+                </div>
+            `).join('');
+        }
+
+        // 加载 Bundleless 页面
+        function loadBundlelessPage(pageName) {
+            if (bundlelessPages[pageName]) {
+                editor.value = bundlelessPages[pageName];
+                const lines = editor.value.split('\n').length;
+                lineCount.textContent = '行数: ' + lines;
+                displayModules(pageName);
+                runCode();
+            }
+        }
+
+        // 通过路径加载 Bundleless 页面
+        function loadBundlelessPageByPath() {
+            const pathSelect = document.getElementById('pagePathSelect');
+            const path = pathSelect.value;
+
+            // 如果没有选择页面
+            if (!path) {
+                return;
+            }
+
+            // 加载对应的页面
+            if (bundlelessPages[path]) {
+                loadBundlelessPage(path);
+                status.className = 'status success';
+                status.textContent = '✓ 页面加载成功';
+                setTimeout(() => {
+                    status.className = 'status';
+                    status.textContent = '';
+                }, 2000);
+            } else {
+                status.className = 'status error';
+                status.textContent = '✗ 页面不存在';
+                preview.innerHTML = '<div class="error">❌ 错误:\n\n找不到路径 "' + path + '" 对应的页面</div>';
+                setTimeout(() => {
+                    status.className = 'status';
+                    status.textContent = '';
+                }, 3000);
+            }
         }
 
         // 运行代码
