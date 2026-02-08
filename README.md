@@ -2,7 +2,7 @@
 
 [![Tests](https://img.shields.io/badge/tests-30%20passed-brightgreen)](https://github.com/i5ting/next-bundless-vibe)
 [![Coverage](https://img.shields.io/badge/coverage-77.62%25-yellow)](https://github.com/i5ting/next-bundless-vibe)
-[![License](https://img.shields.io/badge/license-ISC-blue)](https://github.com/i5ting/next-bundless-vibe)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/i5ting/next-bundless-vibe)
 
 将 Next.js 应用转换为 bundleless 模式的工具，无需构建即可运行 React 应用。
 
@@ -402,7 +402,7 @@ Bundleless 模式允许你快速预览和分享 React 组件，无需复杂的�
 
 ## License
 
-ISC
+MIT License - see the [LICENSE](LICENSE) file for details
 
 ## 作者
 
